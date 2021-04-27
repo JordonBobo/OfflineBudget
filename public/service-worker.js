@@ -1,8 +1,7 @@
 const FILES_TO_CACHE = [
   "/",
-  "/index.html",
+  "/indexedDb.js",
   "/index.js",
-  "/indexedDB.js",
   "/manifest.webmanifest",
   "/styles.css",
   "/icons/icon-192x192.png",
@@ -10,29 +9,29 @@ const FILES_TO_CACHE = [
 ];
 
 
-const STATIC_CACHE =  "static-cache";              
-const DYNAMIC_CACHE = "dynamic-cache";             
+const STATIC_CACHE =  "static-cache-v2";              
+const DYNAMIC_CACHE = "dynamic-cache-2";             
 
 self.addEventListener("install", evt => {
   evt.waitUntil(
     caches.open(STATIC_CACHE)
     .then(cache => {cache.addAll(FILES_TO_CACHE)})
-    .then(self.skipWaiting())
+    // .then(self.skipWaiting())
   );
 });
 
-self.addEventListener("activate", event => {
-  const currentCaches = [STATIC_CACHE, ];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
-    }).then(cachesToDelete => {
-      return Promise.all(cachesToDelete.map(cacheToDelete => {
-        return caches.delete(cacheToDelete);
-      }));
-    }).then(() => self.clients.claim())
-  );
-});
+// self.addEventListener("activate", event => {
+//   const currentCaches = [STATIC_CACHE, ];
+//   event.waitUntil(
+//     caches.keys().then(cacheNames => {
+//       return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
+//     }).then(cachesToDelete => {
+//       return Promise.all(cachesToDelete.map(cacheToDelete => {
+//         return caches.delete(cacheToDelete);
+//       }));
+//     }).then(() => self.clients.claim())
+//   );
+// });
 
 self.addEventListener("fetch", function(evt) {
   if (evt.request.url.includes("/api/")) {
@@ -53,10 +52,23 @@ self.addEventListener("fetch", function(evt) {
     return;
   }
   evt.respondWith(
-    caches.open(STATIC_CACHE).then(cache => {
-      return cache.match(evt.request).then(response => {
-        return response || fetch(evt.request);
-      });
+    fetch(evt.request)
+    .catch(() => {
+      return caches.match(evt.request)
+      .then(response => {
+        if (response) {
+          return response
+        }
+        else if (evt.request.headers.get('accept').includes('text/html'))
+      {
+        return caches.match('/')
+      }
+      })
     })
+    // caches.open(STATIC_CACHE).then(cache => {
+    //   return cache.match(evt.request).then(response => {
+    //     return response || fetch(evt.request);
+    //   });
+    // })
   );
 });
