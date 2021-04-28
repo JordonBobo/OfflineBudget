@@ -16,22 +16,8 @@ self.addEventListener("install", evt => {
   evt.waitUntil(
     caches.open(STATIC_CACHE)
     .then(cache => {cache.addAll(FILES_TO_CACHE)})
-    // .then(self.skipWaiting())
   );
 });
-
-// self.addEventListener("activate", event => {
-//   const currentCaches = [STATIC_CACHE, ];
-//   event.waitUntil(
-//     caches.keys().then(cacheNames => {
-//       return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
-//     }).then(cachesToDelete => {
-//       return Promise.all(cachesToDelete.map(cacheToDelete => {
-//         return caches.delete(cacheToDelete);
-//       }));
-//     }).then(() => self.clients.claim())
-//   );
-// });
 
 self.addEventListener("fetch", function(evt) {
   if (evt.request.url.includes("/api/")) {
@@ -65,10 +51,5 @@ self.addEventListener("fetch", function(evt) {
       }
       })
     })
-    // caches.open(STATIC_CACHE).then(cache => {
-    //   return cache.match(evt.request).then(response => {
-    //     return response || fetch(evt.request);
-    //   });
-    // })
   );
 });
